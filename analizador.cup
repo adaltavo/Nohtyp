@@ -1,0 +1,106 @@
+package NohtypPackage;
+
+import java.io.*;
+
+import java.lang.*;
+
+import java_cup.runtime.*;
+
+import java_cup.runtime.Symbol;
+
+import java.util.ArrayList;
+
+import java.util.*;
+
+
+action code{:
+
+
+void print(String msj)
+ 
+   {System.out.println(msj);}
+
+
+:}
+
+
+parser code {:
+
+
+
+public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{Ventana.error("Error! ");
+
+
+System.out.println(" ");
+ }
+
+public void syntax_error(Symbol s){
+Ventana.error("ERROR SINTAXIS: Se encontro un error en la linea: "+(s.right+1)+" antes de: '"+s.value+"', revisa la estructura de tu programa en esa sección");
+}
+
+
+
+public void semantic(Symbol cur_token,String n)
+{
+System.out.println("Error Semantico ");
+  }
+
+
+
+public void semantic(String msg, Object obj) {
+
+}
+
+:};
+
+
+terminal tfalse, tnone, ttrue, tand, tas, tassert, tbreak, tclass, tcontinue, tdef, tdel, telif, telse, texcept, tfinally, tfor,
+    tfrom, tglobal, timport, tif, tin, tis, tlambda, tnonlocal,
+    tnot, tnor, tpass, traise, treturn, ttry, twhile, twith, tyield, tcomentarios, tmas, tmenos, tpor, tentre, tmodulo, tigualque,
+    tdiferente, tigualmenor, tigualmayor, tigual, tigualmas,
+    tigualmenos, tabre, tcierra, tabrec, tcierrac, tabrep, tcierrap, tcoma, tor, tmenor, tmayor, tpuntos, tpunto, trange;
+
+terminal String tid, tint, treal , tstring, tchar;
+
+non terminal ESE, ASSIGN, FUNCION, PARAM, BODY, OPERACION, ARITMETICA, VALORES, STMT, IF, LOGICA, CONDICION, CICLO, ABRECIERRA,ELSE, FOR, PARAM2, METODOS, LISTA ;
+
+
+start with ESE ;
+
+ESE ::= BODY |  ; 
+
+METODOS ::= tid tpunto tid tabrep PARAM2 tcierrap ESE ;
+
+BODY ::= ASSIGN | METODOS | FUNCION | LISTA | IF | ELSE | CICLO | FOR |error:e ESE {::} ;
+
+LISTA ::= tid tigual tabrec PARAM2 tcierrac ESE ;
+
+ASSIGN ::= tid tigual tid ESE | tid tigual tint ESE | tid tigual treal ESE | tid tigual OPERACION ESE | tid tigual ttrue ESE| tid tigual tfalse ESE | tid tigual tstring ESE | tid tigual tid tabrep PARAM2 tcierrap ESE | tid tigual METODOS ;
+
+FUNCION ::= tdef tid tabrep PARAM tcierrap tpuntos BODY | tdef tid tabrep PARAM tcierrap tpuntos ABRECIERRA | tid tabrep PARAM2 tcierrap ESE ;
+
+PARAM2 ::= tid | tstring | tint | ttrue | tfalse | treal | tid tcoma PARAM2 | tint tcoma PARAM2 | treal tcoma PARAM2 | tstring tcoma PARAM2| ;
+
+PARAM ::= tid | tid tcoma PARAM | ; 
+
+OPERACION ::= VALORES ARITMETICA VALORES | VALORES ARITMETICA OPERACION;
+
+VALORES ::= tid | treal | tint | tid tpunto tid tabrep PARAM2 tcierrap ;
+
+ELSE ::= telse tpuntos BODY;
+
+IF ::= tif CONDICION tpuntos BODY | tif CONDICION tpuntos ABRECIERRA;
+
+CICLO ::= twhile CONDICION tpuntos BODY | twhile CONDICION tpuntos ABRECIERRA ;
+
+FOR ::= tfor tid tin trange tabrep tint tcierrap tpuntos BODY |
+tfor tid tin trange tabrep tint tcierrap tpuntos ABRECIERRA
+;
+
+CONDICION ::= VALORES LOGICA VALORES | ttrue | tfalse | tid;
+
+LOGICA ::= tigualque | tdiferente | tigualmenor | tigualmayor | tmayor | tmenor;
+
+ARITMETICA ::= tmas | tmenos | tpor | tentre | tmodulo | tand | tnot | tor ;
+
+ABRECIERRA ::= tabre BODY tcierra ESE;

@@ -1,0 +1,623 @@
+package NohtypPackage;
+
+import java.io.*;
+
+import java.lang.*;
+
+import java_cup.runtime.*;
+
+import java_cup.runtime.Symbol;
+
+import java.util.ArrayList;
+
+import java.util.*;
+
+
+action code{:
+static boolean eval=true;
+
+void print(String msj)
+ 
+   {System.out.println(msj);}
+
+
+:}
+
+
+parser code {:
+
+
+
+public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{
+
+Ventana.error("Error fatal, verifica que todas las llaves '{}' esten cerradas, no se puede seguir analizando");
+
+
+System.out.println(" ");
+ }
+
+public void syntax_error(Symbol s){
+/* Ventana.error("ERROR SINTAXIS: Se encontro un error en la linea: "+(s.right+1)+" antes de: '"+s.value+"', revisa la estructura de tu programa en esa sección"); */
+}
+
+
+
+public void semantic(Symbol cur_token,String n)
+{
+System.out.println("Error Semantico ");
+  }
+
+public void report_error(String message, Object info){
+	System.out.println(message);
+}
+
+public void semantic(String msg, Object obj) {
+System.out.println(msg);
+}
+
+:};
+
+
+terminal txinput, tfalse, ttrue, tand, telif, telse, tfor,
+    tif, tin, 
+    tnot, twhile,tcomentarios, tmas, tmenos, tpor, tentre, tmodulo, tigualque,
+    tdiferente, tigualmenor, tigualmayor, tigual,
+    tabre, tcierra, tabrec, tcierrac, tabrep, tcierrap, tcoma, tor, tmenor, tmayor, tpuntos, tpunto, trange, tpuntocoma, tinput, tprint, tstr, tarray, txarray;
+
+terminal String tid, tint, treal , tstring, tchar;
+
+non terminal ESE,LISTA,COND3,LOG,A,CORC, SINT, IF, WHI, FOR, ASIG, ABRECIERRA, SAL, ENT, EXP, COND, COND2, TCOND, OPL, OPREL, REL, TERM, EXP2, TERM2, FAC ;
+
+start with SINT;
+
+SINT ::=  ASIG:a SINT {:TablaDS.codasm=a+TablaDS.codasm;:}
+| SAL:a SINT {:TablaDS.codasm=a+TablaDS.codasm;:}
+| ENT:a SINT {:TablaDS.codasm=a+TablaDS.codasm;:}
+| WHI:a SINT {:TablaDS.codasm=a+TablaDS.codasm;:}
+| FOR:a SINT {:TablaDS.codasm=a+TablaDS.codasm;:}
+| IF:a SINT {:TablaDS.codasm=a+TablaDS.codasm;:}
+| LISTA:a SINT {:TablaDS.codasm=a+TablaDS.codasm;:}
+| ;
+
+ESE ::= 
+	ASIG:a ESE:b {:RESULT=a+"\n"+b;:}
+| SAL:a ESE:b {:RESULT=a+"\n"+b;:}
+| ENT:a ESE:b {:RESULT=a+"\n"+b;:}
+| WHI:a ESE:b {:RESULT=a+"\n"+b;:}
+| FOR:a ESE:b {:RESULT=a+"\n"+b;:}
+| IF:a ESE:b {:RESULT=a+"\n"+b;:}
+| LISTA:a ESE:b {:RESULT=a+"\n"+b;:}
+| {:RESULT="";:};
+
+LISTA::= tid:h tarray tfor tint:a tpuntocoma {: RESULT="array String "+h+" of "+a;:}
+| tid:h txarray tfor tint:a tpuntocoma  {: RESULT="array Integer "+h+" of "+a; :}
+| tid:h tarray tfor tid:a tpuntocoma {: RESULT="T"+TablaDS.x+"= "+a+"\narray String "+h+" of T"+TablaDS.x; TablaDS.incx();:}
+| tid:h txarray tfor tid:a  tpuntocoma {: RESULT="T"+TablaDS.x+"= "+a+"\narray Integer "+h+" of T"+TablaDS.x; TablaDS.incx();:}
+;
+
+COND2::= COND:a {:RESULT=(Nodo) a;:} | tid:a {:RESULT=a;:};
+
+IF::= tif COND2:a tpuntos ABRECIERRA:b {:
+
+String t="";
+
+if(a.toString().matches("[a-zA-Z_][a-zA-Z0-9_]*") ){
+if(!a.toString().equals("True") && !a.toString().equals("False"))
+t=".IF "+a+"== 1\n"+b+".ENDIF\n";
+else
+t=".IF "+a.toString().toUpperCase()+"\n"+b+".ENDIF";
+
+}
+
+
+
+else{
+Nodo temp= (Nodo) a;
+Nodo.postordenasm(temp); 
+t=temp.cadtemp;
+if(temp.valor.toString().equals("<")){
+  t=t+Nodo.sacarCondicionFPU()+"jna E"+TablaDS.y+"\n";
+}
+if(temp.valor.toString().equals("<=")){
+  t=t+Nodo.sacarCondicionFPU()+"jnae E"+TablaDS.y+"\n";
+}
+if(temp.valor.toString().equals(">")){
+  t=t+Nodo.sacarCondicionFPU()+"jnb E"+TablaDS.y+"\n";
+}
+if(temp.valor.toString().equals(">=")){
+  t=t+Nodo.sacarCondicionFPU()+"jnbe E"+TablaDS.y+"\n";
+}
+if(temp.valor.toString().equals("==")){
+  t=t+Nodo.sacarCondicionFPU()+"jnz E"+TablaDS.y+"\n";
+}
+if(temp.valor.toString().equals("!=")){
+  t=t+Nodo.sacarCondicionFPU()+"jz E"+TablaDS.y+"\n";
+}
+if(temp.valor.toString().equals("True") || temp.valor.toString().equals("False")){
+  t=t+".IF "+temp.valor.toString().toUpperCase()+"\n"+b+".ENDIF\n";
+}
+else{
+t=t+b+"E"+TablaDS.y+": \n";
+TablaDS.incy();
+}
+}
+
+
+RESULT=t;
+:}
+
+
+| tif COND2:a tpuntos ABRECIERRA:b telse tpuntos ABRECIERRA:c {:
+
+String t="";
+
+if(a.toString().matches("[a-zA-Z_][a-zA-Z0-9_]*") ){
+if(!a.toString().equals("True") && !a.toString().equals("False"))
+t=".IF "+a+"== 1\n"+b+".ELSE\n"+c+".ENDIF\n";
+else
+t=".IF "+a.toString().toUpperCase()+"\n"+b+".ENDIF";
+
+}
+
+else{
+Nodo temp= (Nodo) a;
+Nodo.postordenasm(temp); 
+t=temp.cadtemp;
+
+if(temp.valor.toString().equals("<")){
+  t=t+Nodo.sacarCondicionFPU()+"jna E"+TablaDS.y+"\n";
+}
+if(temp.valor.toString().equals("<=")){
+  t=t+Nodo.sacarCondicionFPU()+"jnae E"+TablaDS.y+"\n";
+}
+if(temp.valor.toString().equals(">")){
+  t=t+Nodo.sacarCondicionFPU()+"jnb E"+TablaDS.y+"\n";
+}
+if(temp.valor.toString().equals(">=")){
+  t=t+Nodo.sacarCondicionFPU()+"jnbe E"+TablaDS.y+"\n";
+}
+if(temp.valor.toString().equals("==")){
+  t=t+Nodo.sacarCondicionFPU()+"jnz E"+TablaDS.y+"\n";
+}
+if(temp.valor.toString().equals("!=")){
+  t=t+Nodo.sacarCondicionFPU()+"jz E"+TablaDS.y+"\n";
+}
+if(temp.valor.toString().equals("True") || temp.valor.toString().equals("False")){
+  t=t+".IF "+temp.valor.toString().toUpperCase()+"\n"+b+".ELSE\n"+c+".ENDIF\n";
+}
+else{
+  
+t=t+b+"jmp E"+(TablaDS.y+1)+"\n";
+t=t+"E"+TablaDS.y+": \n";
+TablaDS.incy();
+t=t+c+"E"+TablaDS.y+": \n";
+TablaDS.incy();
+
+}
+
+
+}
+
+
+RESULT=t;
+
+:}
+
+
+
+
+| tif COND2:a tpuntos ABRECIERRA:b telif COND2:d tpuntos ABRECIERRA:c
+{:
+
+String t="";
+
+if(a.toString().matches("[a-zA-Z_][a-zA-Z0-9_]*") ){
+if(!a.toString().equals("True") && !a.toString().equals("False"))
+t=".IF "+a+"== 1\n"+b+"\n";
+
+
+}
+
+else{
+Nodo temp= (Nodo) a;
+Nodo.postordenasm(temp); 
+t=temp.cadtemp;
+
+if(temp.valor.toString().equals("<")){
+  t=t+Nodo.sacarCondicionFPU()+"jna E"+TablaDS.y+"\n";
+}
+if(temp.valor.toString().equals("<=")){
+  t=t+Nodo.sacarCondicionFPU()+"jnae E"+TablaDS.y+"\n";
+}
+if(temp.valor.toString().equals(">")){
+  t=t+Nodo.sacarCondicionFPU()+"jnb E"+TablaDS.y+"\n";
+}
+if(temp.valor.toString().equals(">=")){
+  t=t+Nodo.sacarCondicionFPU()+"jnbe E"+TablaDS.y+"\n";
+}
+if(temp.valor.toString().equals("==")){
+  t=t+Nodo.sacarCondicionFPU()+"jnz E"+TablaDS.y+"\n";
+}
+if(temp.valor.toString().equals("!=")){
+  t=t+Nodo.sacarCondicionFPU()+"jz E"+TablaDS.y+"\n";
+}
+if(temp.valor.toString().equals("True") || temp.valor.toString().equals("False")){
+  t=t+".IF "+temp.valor.toString().toUpperCase()+"\n"+b+"\n";
+}
+else{
+
+t=t+b+"JMP E"+(TablaDS.y+1)+"\n";
+t=t+"E"+TablaDS.y+": \n";
+TablaDS.incy();
+
+}
+
+
+/*t=temp.cadtemp+"\n"+"sifalso "+te[0]+", E"+TablaDS.y+"\n";*/
+}
+
+
+
+/*
+t=t+b+"saltar E"+(TablaDS.y+1)+"\n";   salto excluyendo elif E2
+t=t+"E"+TablaDS.y+": \n";               E1: 
+TablaDS.incy(); */
+
+
+if(d.toString().matches("[a-zA-Z_][a-zA-Z0-9_]*") ){
+if(!d.toString().equals("True") && !d.toString().equals("False"))
+t=t+".ELSEIF "+d+"== 1\n"+c+".ENDIF\n";
+}
+
+else{
+Nodo temp1= (Nodo) d;
+Nodo.postordenasm(temp1); 
+t=t+temp1.cadtemp;
+
+if(temp1.valor.toString().equals("<")){
+  t=t+Nodo.sacarCondicionFPU()+"jna E"+TablaDS.y+"\n";
+}
+if(temp1.valor.toString().equals("<=")){
+  t=t+Nodo.sacarCondicionFPU()+"jnae E"+TablaDS.y+"\n";
+}
+if(temp1.valor.toString().equals(">")){
+  t=t+Nodo.sacarCondicionFPU()+"jnb E"+TablaDS.y+"\n";
+}
+if(temp1.valor.toString().equals(">=")){
+  t=t+Nodo.sacarCondicionFPU()+"jnbe E"+TablaDS.y+"\n";
+}
+if(temp1.valor.toString().equals("==")){
+  t=t+Nodo.sacarCondicionFPU()+"jnz E"+TablaDS.y+"\n";
+}
+if(temp1.valor.toString().equals("!=")){
+  t=t+Nodo.sacarCondicionFPU()+"jz E"+TablaDS.y+"\n";
+}
+if(temp1.valor.toString().equals("True") || temp1.valor.toString().equals("False")){
+  t=t+".ELSEIF "+temp1.valor.toString().toUpperCase()+"\n"+d+"\n";
+}
+else{
+  t=t+c+"E"+TablaDS.y+": \n";
+TablaDS.incy();
+}
+
+/*t=t+temp1.cadtemp+"\n"+"sifalso "+te[0]+", E"+TablaDS.y+"\n";*/
+}
+
+
+RESULT=t;
+
+:}
+
+
+;
+
+WHI::= twhile COND2:a tpuntos ABRECIERRA:b {:
+
+String t="";
+
+
+
+if(a.toString().matches("[a-zA-Z_][a-zA-Z0-9_]*") ){
+if(!a.toString().equals("True") && !a.toString().equals("False"))
+t=".WHILE "+a+"== 1\n"+b+".ENDW\n";
+}
+
+else{
+t="E"+TablaDS.y+": \n";
+Nodo temp= (Nodo) a;
+Nodo.postordenasm(temp); 
+t=t+temp.cadtemp;
+
+if(temp.valor.toString().equals("<")){
+  t=t+Nodo.sacarCondicionFPU()+"jna E"+(TablaDS.y+1)+"\n";
+}
+if(temp.valor.toString().equals("<=")){
+  t=t+Nodo.sacarCondicionFPU()+"jnae E"+(TablaDS.y+1)+"\n";
+}
+if(temp.valor.toString().equals(">")){
+  t=t+Nodo.sacarCondicionFPU()+"jnb E"+(TablaDS.y+1)+"\n";
+}
+if(temp.valor.toString().equals(">=")){
+  t=t+Nodo.sacarCondicionFPU()+"jnbe E"+(TablaDS.y+1)+"\n";
+}
+if(temp.valor.toString().equals("==")){
+  t=t+Nodo.sacarCondicionFPU()+"jnz E"+(TablaDS.y+1)+"\n";
+}
+if(temp.valor.toString().equals("!=")){
+  t=t+Nodo.sacarCondicionFPU()+"jz E"+(TablaDS.y+1)+"\n";
+}
+if(temp.valor.toString().equals("True") || temp.valor.toString().equals("False")){
+  t=t+".WHILE "+temp.valor.toString().toUpperCase()+"\n"+b+".ENDW\n";
+}
+else{
+t=t+b+"JMP "+"E"+TablaDS.y+"\n";
+TablaDS.incy();
+t=t+"E"+TablaDS.y+": \n";
+TablaDS.incy();
+}
+
+
+}
+
+
+RESULT=t;
+
+
+:}
+ ;
+
+FOR::= tfor A:a tin trange tabrep EXP:q tcierrap tpuntos ABRECIERRA:c {:
+
+Nodo temp= (Nodo) q;
+Nodo.postordenasm(temp); 
+String t="";
+t=temp.cadtemp;
+
+
+t=t+"\nfistp dword ptr [esp] \n pop range\n";
+/*t=t+"xor ecx, ecx \n mov ecx, "+a+"\n.WHILE range >= "+a+"\n push ecx\n"+c+"\npop ecx \ndec range\n.ENDW\n";  */
+
+
+t=t+"E"+TablaDS.y+":\npush "+a+"\n fild dword ptr[esp]\nlea eax, range\n fild dword ptr[eax]\n";
+t=t+Nodo.sacarCondicionFPU()+"jnae E"+(TablaDS.y+1)+"\n"+c+"dec range\njmp E"+TablaDS.y+"\n";
+TablaDS.incy();
+t=t+"E"+TablaDS.y+":\n";
+
+/* ESTO ES APARTE
+if(a.toString().matches("[a-zA-Z_][a-zA-Z0-9_]*"))
+t=t+"lea eax, "+a+"\n fld dword ptr [eax]\n fistp dword ptr [esp] \n pop xrange\n";
+else
+t=t+"xor ecx, ecx\nmov ecx, "+a+"\nmov xrange, ecx\n";
+
+t=t+"E"+TablaDS.y+": \n"+c+"dec range\nxor ecx,ecx\nmov ecx, xrange\ncmp ecx, range\n jnbe E"+TablaDS.y+"\n"; 
+TablaDS.incy();*/
+
+TablaDS.incy();
+RESULT=t;
+
+
+
+
+
+
+
+
+:}
+;
+
+
+A::= tid:a {:RESULT=a;:}| tint:a {:RESULT=a;:};
+
+
+
+
+
+ASIG ::= tid:h tigual EXP:q tpuntocoma {:
+Nodo temp= (Nodo) q;
+
+Nodo.postordenasm(temp); 
+RESULT= temp.cadtemp+"\n"+"fstp dword ptr [esp] \n pop "+h+"\n";
+
+
+:} 
+
+
+| tid:h tigual COND:q tpuntocoma {:
+
+Nodo temp= (Nodo) q;
+Nodo.postordenasm(temp); 
+String t="";
+
+if (temp.valor.toString().equals("True"))
+t=t+"mov "+h+", 1\n";
+if (temp.valor.toString().equals("False"))
+t=t+"mov "+h+", 0\n";
+
+if (!temp.valor.toString().equals("False") && !temp.valor.toString().equals("True"))
+t=t+temp.cadtemp;
+
+
+
+RESULT=t;
+:} 
+
+| tid:hue tigual tstring:q {:
+
+RESULT=" fnc lstrcpy, addr "+hue+", "+q+"\n";
+
+:} tpuntocoma 
+| tid:h tigual tabrec CORC tcierrac tpuntocoma {::}
+| tid:h tigual ENT:q {:
+
+String t="";
+t=q+"fnc lstrcpy, addr "+h+", addr xarray\n";
+t=t+"fnc atodw, addr "+h+"\n";
+t=t+"push eax\nfild dword ptr [esp]\nfstp dword ptr [esp]\n";
+t=t+"pop "+h+"\n";
+
+if(q.toString().contains("xinput"))
+RESULT=q+"fnc lstrcpy, addr "+h+", addr xinput \n";
+else
+RESULT=t;
+
+:}
+;
+
+CORC::= tid | tint | treal
+| tid tcoma CORC 
+| tstring 
+| tstring tcoma CORC ;
+
+
+ABRECIERRA ::= tabre ESE:a tcierra {:RESULT=a;:}
+;
+
+
+SAL ::= tprint tabrep EXP:q tcierrap tpuntocoma
+{:
+
+Nodo temp= (Nodo) q;
+Nodo.postordenasm(temp); 
+
+String t=temp.cadtemp+"\n fstp dword ptr [esp] \n pop eax \n print real4$(eax)\n";
+RESULT=t;
+
+:}
+| tprint tabrep tstring:a tcierrap tpuntocoma {:
+
+
+RESULT="printf ("+a+")\n";
+
+:}
+| tstr tabrep tid:q tcierrap tpuntocoma {:
+
+
+RESULT= "printf (addr "+q+")\n";
+
+
+:}
+| tstr tabrep tstring:a tcierrap tpuntocoma {:
+
+
+RESULT="printf ("+a+")\n";
+
+:}
+;
+
+
+ENT ::= tinput tabrep tstring:a tcierrap tpuntocoma {:
+
+
+RESULT= "printf("+a+")\n fnc StdIn, addr xinput, 400\n " ;
+
+:}
+| tinput tabrep tid:q tcierrap tpuntocoma {:
+
+String t="printf (addr "+q+")\n";
+t=t+"fnc StdIn, addr xinput, 400\n " ;      /*HACER COSAS AQUI*/
+RESULT=t;
+
+:}
+
+| txinput tabrep tstring:a tcierrap tpuntocoma{:
+
+String t="";
+t="printf("+a+")\n fnc StdIn, addr xarray, 400\n";
+
+
+RESULT=t;
+
+
+
+:}
+| txinput tabrep tid:q tcierrap tpuntocoma {:
+String t="printf (addr "+q+")\n";
+t=t+"fnc StdIn, addr xarray, 400\n";      /*HACER COSAS AQUI*/
+RESULT=t;
+
+
+:}
+;
+
+
+COND ::= COND:a OPL:b REL:c  {:RESULT=new Nodo(b+"","Boolean",a,c);:} 
+| REL:a {:RESULT=(Nodo) a;:} 
+/* | COND OPL tid  */
+;
+
+
+
+
+
+
+REL ::= tabrep COND:a tcierrap {:RESULT=(Nodo) a;:}
+| EXP:a OPREL:c EXP:b {:
+
+RESULT=new Nodo(c+"","Boolean",a,b);
+
+:}
+
+
+| ttrue {:RESULT=new Nodo("True","Boolean",null,null);:} 
+| tfalse {:RESULT=new Nodo("False","Boolean",null,null);:} 
+| tnot REL:a {:
+Nodo temp= (Nodo) a;
+temp.modV("not "+temp.valor);
+RESULT= temp;
+:} 
+;
+
+OPL ::= tand:a {:RESULT="And";:} 
+| tor:a {:RESULT="Or";:}
+;
+
+OPREL ::= tigualque:a {:RESULT="==";:} 
+| tdiferente:a {:RESULT="!=";:} 
+| tigualmenor:a {:RESULT="<=";:} 
+| tigualmayor:a {:RESULT=">=";:} 
+| tmayor:a {:RESULT=">";:} 
+| tmenor:a {:RESULT="<";:} 
+;
+
+
+LOG::= LOG:a OPL:b COND3:c | COND3:a | tnot COND3:b | ttrue | tfalse ;
+
+COND3::= COND3:a OPREL:b COND:c | tid ;
+
+
+/*ESTAS YA ESTAN BIEN*/
+EXP ::= EXP:a tmas TERM:b {:RESULT=new Nodo("+","Ope",a,b);:} 
+| EXP:a tmenos TERM:b {:RESULT=new Nodo("-","Ope",a,b);:} 
+| TERM:b {:RESULT=(Nodo) b;:} 
+
+;
+
+TERM ::= TERM:a tpor FAC:b {:RESULT=new Nodo("*","Ope",a,b);:} 
+| TERM:a tentre FAC:b {:RESULT=new Nodo("/","Real",a,b);:} 
+| FAC:a {:RESULT=(Nodo) a;:} ;
+
+FAC ::= tabrep EXP:a tcierrap {:RESULT=(Nodo) a;:} 
+| tid:t {:
+
+String tipo= TablaDS.ObtenerTipo(t);
+RESULT=new Nodo(t.toString(),tipo,null,null);
+
+:} 
+| tint:a {:RESULT=new Nodo(a.toString(),"Integer",null,null);:} 
+| treal:a {:RESULT=new Nodo(a.toString(),"Real",null,null);:} 
+| tmenos tid:a {:
+
+
+String tipo= TablaDS.ObtenerTipo(a);
+
+
+RESULT=new Nodo("-"+a.toString(),tipo,null,null);
+:}
+| tmenos tint:a {:RESULT=new Nodo("-"+a.toString(),"Integer",null,null);:}
+| tmenos treal:a {:RESULT=new Nodo("-"+a.toString(),"Real",null,null);:}
+
+;
+
+
+
+EXP2::= EXP2 tmas EXP | EXP2 tpor EXP | EXP2 tentre EXP | EXP2 tmenos EXP | tid | EXP ; 

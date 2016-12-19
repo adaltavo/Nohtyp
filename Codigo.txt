@@ -1,0 +1,9 @@
+x=True;
+y=x;
+
+if False:{
+print("no funciono");
+}
+elif y:{
+print("si funciono");
+}

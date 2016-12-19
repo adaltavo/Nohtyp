@@ -1,0 +1,229 @@
+package NohtypPackage;
+
+import java.io.*;
+
+import java.lang.*;
+
+import java_cup.runtime.*;
+
+import java_cup.runtime.Symbol;
+
+import java.util.ArrayList;
+
+import java.util.*;
+
+
+action code{:
+static boolean eval=true;
+
+void print(String msj)
+ 
+   {System.out.println(msj);}
+
+
+:}
+
+
+parser code {:
+
+
+
+public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{
+
+Ventana.error("Error fatal, verifica que todas las llaves '{}' esten cerradas, no se puede seguir analizando");
+
+
+System.out.println(" ");
+ }
+
+public void syntax_error(Symbol s){
+/* Ventana.error("ERROR SINTAXIS: Se encontro un error en la linea: "+(s.right+1)+" antes de: '"+s.value+"', revisa la estructura de tu programa en esa sección"); */
+}
+
+
+
+public void semantic(Symbol cur_token,String n)
+{
+System.out.println("Error Semantico ");
+  }
+
+public void report_error(String message, Object info){
+	System.out.println(message);
+}
+
+public void semantic(String msg, Object obj) {
+System.out.println(msg);
+}
+
+:};
+
+
+terminal txinput, tfalse, ttrue, tand, telif, telse, tfor,
+    tif, tin, 
+    tnot, twhile,tcomentarios, tmas, tmenos, tpor, tentre, tmodulo, tigualque,
+    tdiferente, tigualmenor, tigualmayor, tigual,
+    tabre, tcierra, tabrec, tcierrac, tabrep, tcierrap, tcoma, tor, tmenor, tmayor, tpuntos, tpunto, trange, tpuntocoma, tinput, tprint, tstr;
+
+terminal String tid, tint, treal , tstring, tchar;
+
+non terminal LISTA,COND3,LOG,A,CORC, SINT, IF, WHI, FOR, ASIG, ABRECIERRA, SAL, ENT, EXP, COND, COND2, TCOND, OPL, OPREL, REL, TERM, EXP2, TERM2, FAC ;
+
+start with SINT;
+
+SINT ::=  ASIG SINT
+| SAL SINT 
+| ENT SINT 
+| WHI SINT 
+| FOR SINT 
+| IF SINT 
+| ;
+
+LISTA::= tid:a tpunto:b tid:c tabrep tcierrap tpuntocoma {:
+
+if(!(c.toString().equals("insert") || c.toString().equals("pop") ) )
+if(!TablaDS.ObtenerTipo(a).toString().equals("Lista"))
+Ventana.error("Error en la linea "+(aright+1)+", Instruccion no válida, "+a+" no es una lista ");
+
+:}
+
+;
+
+COND2::= COND | tid:a {::};
+
+IF::= tif COND2 tpuntos ABRECIERRA 
+| tif COND2 tpuntos ABRECIERRA telse tpuntos ABRECIERRA 
+| tif COND2 tpuntos ABRECIERRA telif COND2 tpuntos ABRECIERRA
+;
+
+WHI::= twhile COND2 tpuntos ABRECIERRA 
+ ;
+
+FOR::= tfor A tin trange tabrep EXP:q tcierrap tpuntos ABRECIERRA {::}
+;
+
+
+A::= tid:a {::}| tint ;
+
+
+ASIG ::= tid:h tigual EXP:q tpuntocoma {:
+Nodo temp= (Nodo) q;
+Nodo.postorden(temp); 
+String[] t=temp.valorT.split("=");
+
+if(!temp.valorT.matches("\\-*[0-9]+|\\-*[0-9]+\\.[0-9]+"))
+TablaDS.codinter=TablaDS.codinter+temp.cadtemp+h+"= "+t[0]+"\n";
+
+else
+TablaDS.codinter=TablaDS.codinter+h+"= "+t[0]+"\n";
+
+
+:} 
+| tid:h tigual COND:q tpuntocoma {:
+
+Nodo temp= (Nodo) q;
+Nodo.postorden(temp); 
+String[] t=temp.valorT.split("=");
+
+TablaDS.codinter=TablaDS.codinter+temp.cadtemp+h+"= "+t[0]+"\n";
+
+:} 
+
+| tid:hue tigual tstring:q {::} tpuntocoma 
+| tid:h tigual tabrec CORC tcierrac tpuntocoma {::}
+| tid:h tigual ENT:q {:
+:}
+;
+
+CORC::= tid | tint | treal
+| tid tcoma CORC 
+| tstring 
+| tstring tcoma CORC ;
+
+
+ABRECIERRA ::= tabre SINT tcierra 
+;
+
+
+SAL ::= tprint tabrep EXP:a {::} tcierrap tpuntocoma
+| tprint tabrep tstring tcierrap tpuntocoma 
+| tstr tabrep EXP:a {::} tcierrap tpuntocoma 
+| tstr tabrep tstring tcierrap tpuntocoma 
+;
+
+
+ENT ::= tinput tabrep tstring tcierrap tpuntocoma {::}
+| tinput tabrep tid:a {::} tcierrap tpuntocoma 
+| txinput tabrep tstring tcierrap tpuntocoma{::}
+| txinput tabrep tid:a {::} tcierrap tpuntocoma
+;
+
+
+COND ::= COND:a OPL:b REL:c  {:RESULT=new Nodo(b+"","Boolean",a,c);:} 
+| REL:a {:RESULT=(Nodo) a;:} 
+/* | COND OPL tid  */
+;
+
+
+/*TCOND ::= tnot COND | REL ;*/
+
+
+
+REL ::= tabrep COND:a tcierrap {:RESULT=(Nodo) a;:}
+| EXP:a OPREL:c EXP:b {:
+
+RESULT=new Nodo(c+"","Boolean",a,b);
+
+:}
+
+
+| ttrue {:RESULT=new Nodo("True","Boolean",null,null);:} 
+| tfalse {:RESULT=new Nodo("False","Boolean",null,null);:} 
+| tnot REL:a {:
+Nodo temp= (Nodo) a;
+temp.modV("not "+temp.valor);
+RESULT= temp;
+:} 
+;
+
+OPL ::= tand:a {:RESULT="And";:} 
+| tor:a {:RESULT="Or";:}
+;
+
+OPREL ::= tigualque:a {:RESULT="==";:} 
+| tdiferente:a {:RESULT="!=";:} 
+| tigualmenor:a {:RESULT="<=";:} 
+| tigualmayor:a {:RESULT=">=";:} 
+| tmayor:a {:RESULT=">";:} 
+| tmenor:a {:RESULT="<";:} 
+;
+
+
+LOG::= LOG:a OPL:b COND3:c | COND3:a | tnot COND3:b | ttrue | tfalse ;
+
+COND3::= COND3:a OPREL:b COND:c | tid ;
+
+
+/*ESTAS YA ESTAN BIEN*/
+EXP ::= EXP:a tmas TERM:b {:RESULT=new Nodo("+","Ope",a,b);:} 
+| EXP:a tmenos TERM:b {:RESULT=new Nodo("-","Ope",a,b);:} 
+| TERM:b {:RESULT=(Nodo) b;:} 
+
+;
+
+TERM ::= TERM:a tpor FAC:b {:RESULT=new Nodo("*","Ope",a,b);:} 
+| TERM:a tentre FAC:b {:RESULT=new Nodo("/","Ope",a,b);:} 
+| FAC:a {:RESULT=(Nodo) a;:} ;
+
+FAC ::= tabrep EXP:a tcierrap {:RESULT=(Nodo) a;:} 
+| tid:t {:RESULT=new Nodo(t.toString(),"Integer",null,null);:} 
+| tint:a {:RESULT=new Nodo(a.toString(),"Integer",null,null);:} 
+| treal:a {:RESULT=new Nodo(a.toString(),"Integer",null,null);:} 
+| tmenos tid:a {:RESULT=new Nodo("-"+a.toString(),"Integer",null,null);:}
+| tmenos tint:a {:RESULT=new Nodo("-"+a.toString(),"Integer",null,null);:}
+| tmenos treal:a {:RESULT=new Nodo("-"+a.toString(),"Integer",null,null);:}
+
+;
+
+
+
+EXP2::= EXP2 tmas EXP | EXP2 tpor EXP | EXP2 tentre EXP | EXP2 tmenos EXP | tid | EXP ; 

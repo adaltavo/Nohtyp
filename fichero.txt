@@ -1,0 +1,73 @@
+asdas 32412 asda #dlaknsdasd
+= & | and @
+
+//analizadores
+java -jar java-cup-11a.jar -parser Sintactico -symbols Simbolo analizador5.cup
+
+//Codigo intermedio
+java -jar java-cup-11a.jar -parser Sintactico2 -symbols Simbolo analizadorarbol6.cup
+
+
+//Codigo maquina
+java -jar java-cup-11a.jar -parser Sintactico3 -symbols Simbolo analizadorarbol7.cup
+
+
+a=12-1*(-1+2)-1--2;
+c=12*a/2+1;
+
+x=1<2 and 3!=1;
+
+
+x=true ;
+y=32;
+
+z= 12+1;
+
+c=z/2*1<12 and y+1+2/4==1;
+
+if 1<23: { z=y*1;  }
+x=false;
+if true : {y=1;}
+if false :{
+if false : {x=false;} 
+
+valeverga=12345444;
+
+}
+
+y=1;
+
+
+Nodo temp1= (Nodo) a;
+Nodo temp2= (Nodo) b;
+Nodo.postorden(temp1); 
+Nodo.postorden(temp2);
+String[] t1=temp1.valorT.split("=");
+String[] t2=temp2.valorT.split("=");
+
+if(!temp1.valorT.matches("\\-*[0-9]+|\\-*[0-9]+\\.[0-9]+"))
+TablaDS.codinter=TablaDS.codinter+temp1.cadtemp+h+"= "+t1[0]+"\n";
+
+else
+TablaDS.codinter=TablaDS.codinter+h+"= "+t1[0]+"\n";
+
+if(!temp2.valorT.matches("\\-*[0-9]+|\\-*[0-9]+\\.[0-9]+"))
+TablaDS.codinter=TablaDS.codinter+temp2.cadtemp+h+"= "+t2[0]+"\n";
+
+else
+TablaDS.codinter=TablaDS.codinter+h+"= "+t2[0]+"\n";
+
+RESULT=new Nodo(t1[0]+" "+c+" "+t2[0],"Boolean",null,null);
+
+
+
+.486
+.model flat, stdcall
+option casemap:none
+include \masm32\include\masm32rt2.inc
+include \masm32\include\Fpu.inc 
+includelib \masm32\lib\Fpu.lib
+.data
+.code
+start:
+end start

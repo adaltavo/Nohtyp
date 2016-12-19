@@ -1,0 +1,90 @@
+package NohtypPackage;
+
+import java.io.*;
+
+import java.lang.*;
+
+import java_cup.runtime.*;
+
+import java_cup.runtime.Symbol;
+
+import java.util.ArrayList;
+
+import java.util.*;
+
+
+action code{:
+
+
+void print(String msj)
+ 
+   {System.out.println(msj);}
+
+
+:}
+
+
+parser code {:
+
+
+
+public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{Ventana.error("Error! ");
+
+
+System.out.println(" ");
+ }
+
+public void syntax_error(Symbol s){
+Ventana.error("ERROR SINTAXIS: Se encontro un error en la linea: "+(s.right+1)+" antes de: '"+s.value+"', revisa la estructura de tu programa en esa sección");
+}
+
+
+
+public void semantic(Symbol cur_token,String n)
+{
+System.out.println("Error Semantico ");
+  }
+
+
+
+public void semantic(String msg, Object obj) {
+
+}
+
+:};
+
+
+terminal tfalse, tnone, ttrue, tand, tas, tassert, tbreak, tclass, tcontinue, tdef, tdel, telif, telse, texcept, tfinally, tfor,
+    tfrom, tglobal, timport, tif, tin, tis, tlambda, tnonlocal,
+    tnot, tnor, tpass, traise, treturn, ttry, twhile, twith, tyield, tcomentarios, tmas, tmenos, tpor, tentre, tmodulo, tigualque,
+    tdiferente, tigualmenor, tigualmayor, tigual, tigualmas,
+    tigualmenos, tabre, tcierra, tabrec, tcierrac, tabrep, tcierrap, tcoma, tor, tmenor, tmayor, tpuntos, tpunto, trange, tpuntocoma, tinput, tprint, tstr;
+
+terminal String tid, tint, treal , tstring, tchar;
+
+non terminal SINT, IF, WHI, FOR, ASIG, ABRECIERRA, SAL, ENT, EXP, COND, COND2, TCOND, OPL, OPREL, REL, TERM, EXP2, TERM2, FAC ;
+start with SINT ;
+SINT ::= IF SINT | WHI SINT | FOR SINT | ASIG SINT | SAL SINT | ENT SINT | ;
+IF ::= tif COND tpuntos ABRECIERRA | tif COND tpuntos ABRECIERRA telse ABRECIERRA ;
+WHI ::= twhile COND tpuntos ABRECIERRA ;
+FOR ::= tfor tid tin trange tabrep EXP tcierrap tpuntos ABRECIERRA ;
+ASIG ::= tid tigual EXP tpuntocoma | tid tigual COND tpuntocoma | tid tigual tstring tpuntocoma | tid tigual tint  tpuntocoma | tid tigual treal tpuntocoma | tid tigual tid tpuntocoma ;
+ABRECIERRA ::= tabre SINT tcierra ;
+SAL ::= tprint tabrep tid tcierrap tpuntocoma | tprint tabrep EXP tcierrap tpuntocoma | tprint tabrep tstring tcierrap tpuntocoma | tstr tabrep tid tcierrap tpuntocoma | tstr tabrep EXP tcierrap tpuntocoma | tstr tabrep tstring tcierrap tpuntocoma ;
+ENT ::= tinput tabrep tstring tcierrap tpuntocoma | tinput tabrep tid tcierrap tpuntocoma ;
+COND ::= TCOND COND2 ;
+COND2 ::= OPL TCOND COND2 | ;
+TCOND ::= tnot COND | tabrep COND tcierrap | REL ;
+OPL ::= tand | tor ;
+REL ::= tabrep REL tcierrap | EXP OPREL EXP | ttrue | tfalse ;
+OPREL ::= tigualque | tdiferente | tigualmenor | tigualmayor | tmayor | tmenor ;
+
+EXP ::= TERM EXP2 ;
+
+EXP2 ::= tmas TERM EXP2 | tmenos TERM EXP2 | ;
+
+TERM ::= FAC TERM2 ;
+
+TERM2 ::= tpor FAC TERM2 | tentre FAC TERM2 | ;
+
+FAC ::= tmenos FAC | tabrep EXP tcierrap | tid | tint | treal ;

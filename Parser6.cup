@@ -1,0 +1,240 @@
+package scanner;
+import java_cup.runtime.*;
+parser code
+{:
+/**Metodo al que se llama automaticamente ante algún error sintáctico*/
+public void syntax_error(Symbol s){
+System.out.println("Error en la linea "+(s.right+1)+"Columna"+s.left+".Identificador"+s.value+"no reconocido");
+}
+
+/**Metodo al que se llama en el momento en que ya no es posible una recuperacion de errores*/
+public void unrecovered_syntax_error(Symbol s)throws java.lang.Exception{
+System.out.println("Error en la linea "+(s.right+1)+"Columna"+s.left+".Identificador"+s.value+"no reconocido");
+}
+:}
+action code
+{:static String Cadena="";
+:}
+
+/*Declaracion de simbolos terminales*/
+terminal vacio, iden, numero, mas, menos, menosmenos, masmas, dividir, multiplicar, expone, mayor, menor, igualque, diferente, mayorigual, menorigual,not, and, or, igual, llaveizq, llaveder, parentizq, parentder, corcheteizq, corcheteder, pcoma, Chainsaw, Else, End, Eq, Float, For, If, Inputbutton, Inputkey, Int, Legato, Longsound, Main, Method, Mono, New, Noisy, Note, Null, Play, Playsound, Poli, Program, Rhythm, Rt, Show, Switch,Soundtype, Speaker, Square, Stop, string, Triangle, Wave, While, errorlex, Do, Re, Mi, Fa, Sol, La, Si, DoS, ReS, MiS, FaS, SolS, LaS,SiS,coma;
+
+/*Declaracion de simbolos NO terminales*/
+non terminal A,B,C, D, E, G, H, I, J, K, L, M, N, O, P, Q, R, S, U, V, W, X, Y, Z, PROGRAMA,LLAMAMET, DECLARACION,CUERPOMET, PRINCIPAL,CUERPO, PARAMETRO, METODOS, ASIGNACION, EXP, CICLOFOR, T, F, TIPO, CONDICION, OPREL, CICLOSCONTROL, CONDIF, CIF, CELSE, INCDEC, WAVEDEC, TIPOWAVE, LONGDEC, ARTICULACION, STYPEDEC,TIPOWAVER, NOTES, NOTA, PPLAYSOUND, CRYTM, SENTRT,CSWITCH, CUERPOS, INPUT,SSHOW, DSPEAKER, DEQ;
+
+/*Inicio de la gramática*/
+start with PROGRAMA;
+
+PROGRAMA::=Program A
+|error:id{:Cadena=Cadena+"Linea: "+(idright+1)+" Se espera palabra Program\n";:} A;
+
+A::= iden B
+|error:i{:Cadena=Cadena+"Linea: "+(iright+1)+" Se espera un identificador\n";:} B;
+
+
+B::=llaveizq C
+|error:d{:Cadena=Cadena+"Linea: "+(dright+1)+" Se espera {\n";:} C;
+
+C::=DECLARACION D
+|DECLARACION DSPEAKER D;
+
+D::=llaveder E
+|error:id2{:Cadena=Cadena+"Linea: "+(id2right+1)+" Se espera }\n";:} E;
+
+E::=End
+|error:id3{:Cadena=Cadena+"Linea: "+(id3right+1)+" Se espera End\n";:};
+
+
+
+DSPEAKER::=Speaker G
+|error:id4{:Cadena=Cadena+"Linea: "+(id4right+1)+" Se espera Speaker\n";:} pcoma;
+
+G::=parentizq EXP coma EXP parentder pcoma;
+
+
+
+DEQ::=Eq Z;
+
+Z::=parentizq EXP coma EXP coma EXP parentder pcoma
+|error:id13{:Cadena=Cadena+"Linea: "+(id13right+1)+" Estructura Eq es incorrecta\n";:} pcoma;
+
+DECLARACION::=WAVEDEC DECLARACION
+|STYPEDEC DECLARACION
+|LONGDEC DECLARACION 
+|TIPO iden igual EXP pcoma DECLARACION
+|TIPO iden igual EXP pcoma 
+|TIPO  iden corcheteizq EXP corcheteder igual EXP pcoma DECLARACION
+|TIPO  iden corcheteizq EXP corcheteder igual EXP pcoma 
+|METODOS;
+
+STYPEDEC::=iden igual Soundtype parentizq TIPOWAVER coma EXP coma EXP coma iden coma ARTICULACION parentder pcoma
+|iden corcheteizq EXP corcheteder igual Soundtype parentizq TIPOWAVER coma EXP coma EXP coma iden coma ARTICULACION parentder pcoma
+|iden igual Soundtype parentizq Null parentder pcoma
+|iden corcheteizq EXP corcheteder igual Soundtype parentizq Null parentder pcoma;
+
+
+
+TIPOWAVER::=TIPOWAVE
+|iden
+|error:idi{:Cadena=Cadena+"Linea: "+(idiright+1)+" Primer parametro de longsound es incorrecto\n";:};
+
+ARTICULACION::=Poli
+|Mono
+|Legato
+|error:idi1{:Cadena=Cadena+"Linea: "+(idi1right+1)+" Articulacion incorrecta\n";:};
+
+WAVEDEC::=iden igual Wave parentizq TIPOWAVE parentder pcoma;
+
+
+TIPOWAVE::= Square
+|Triangle
+|Noisy
+|Chainsaw;
+
+LONGDEC::=iden igual Longsound parentizq EXP coma EXP coma EXP parentder pcoma;
+
+/*IDNUM::=iden
+|numero;*/
+
+TIPO::=Float
+|Int
+|string;
+
+PRINCIPAL::=Main llaveizq CUERPOMET llaveder;
+
+
+CUERPO::=ASIGNACION CUERPO
+|CICLOSCONTROL CUERPO
+|ASIGNACION
+|CICLOSCONTROL
+|error:idi2{:Cadena=Cadena+"Linea: "+(idi2right+1)+" Se espera asignacion o ciclos de control\n";:} ;
+
+METODOS::=Method iden parentizq PARAMETRO parentder llaveizq CUERPOMET llaveder METODOS
+|Method iden parentizq PARAMETRO parentder llaveizq CUERPOMET llaveder
+|Method iden parentizq parentder llaveizq CUERPOMET llaveder METODOS
+|Method iden parentizq parentder llaveizq CUERPOMET llaveder
+|PRINCIPAL;
+
+ASIGNACION::=iden igual EXP pcoma
+|iden corcheteizq EXP corcheteder igual EXP pcoma;
+
+PARAMETRO::=TIPO iden pcoma PARAMETRO
+|TIPO iden
+|error:idi3{:Cadena=Cadena+"Linea: "+(idi3right+1)+" Parametro incorrecto\n";:} ;
+
+CONDIF::=CIF
+|CIF CELSE;
+
+CIF::=If parentizq CONDICION parentder llaveizq CUERPOMET llaveder;
+CELSE::=Else llaveizq CUERPOMET llaveder;
+
+
+CICLOFOR::=For parentizq Int iden igual EXP coma iden OPREL EXP coma INCDEC parentder llaveizq CUERPOMET llaveder;
+
+INCDEC::=iden masmas
+|iden menosmenos
+|error:idi4{:Cadena=Cadena+"Linea: "+(idi4right+1)+" Decremento o Incremento incorrecto\n";:} ;
+
+CUERPOMET::=ASIGNACION CUERPOMET
+|CICLOSCONTROL CUERPOMET
+|LLAMAMET CUERPOMET
+|PPLAYSOUND CUERPOMET
+|SSHOW CUERPOMET
+|DEQ CUERPOMET
+|ASIGNACION
+|CICLOSCONTROL
+|LLAMAMET
+|SSHOW
+|DEQ
+|PPLAYSOUND
+|error:idi5{:Cadena=Cadena+"Linea: "+(idi5right+1)+" Cuerpo del metodo es incorrecto\n";:} ;
+
+
+
+CRYTM::=Rhythm iden igual Rhythm parentizq numero coma numero coma numero parentder llaveizq SENTRT llaveder;
+
+SENTRT::=Rt corcheteizq EXP corcheteder igual PPLAYSOUND SENTRT
+|Rt corcheteizq EXP corcheteder igual PPLAYSOUND
+|Rt corcheteizq EXP corcheteder igual pcoma SENTRT
+|Rt corcheteizq EXP corcheteder igual pcoma
+|error:idi6{:Cadena=Cadena+"Linea: "+(idi6right+1)+" Sentencias Rt incorrectas\n";:} ;
+
+LLAMAMET::=iden parentizq parentder pcoma
+|iden parentizq EXP parentder pcoma
+|iden parentizq Play parentder pcoma
+|iden parentizq Stop parentder pcoma;
+
+
+
+CSWITCH::=Switch Y;
+
+Y::=llaveizq CUERPOS llaveder
+|error:idi7{:Cadena=Cadena+"Linea: "+(idi7right+1)+" Switch incorrecto\n";:};
+
+CUERPOS::=INPUT CUERPOS
+|INPUT
+|error:idi8{:Cadena=Cadena+"Linea: "+(idi8right+1)+" Input invalido\n";:} ;
+
+INPUT::=parentizq Inputkey igualque EXP parentder llaveizq CUERPOMET llaveder
+|parentizq Inputbutton igualque EXP parentder llaveizq CUERPOMET llaveder
+|parentizq EXP igualque EXP parentder llaveizq CUERPOMET llaveder;
+
+CICLOSCONTROL::=CONDIF
+|While
+|CICLOFOR
+|CRYTM
+|CSWITCH;
+
+/*CONDIF::=CIF|
+CIF CELSE;
+CELSE::=Else llaveizq CUERPO llaveder;
+CICLOFOR::=For parentizq Int iden igual EXP pcoma iden OPREL EXP pcoma INCDEC parentder llaveizq CUERPO llaveder;
+INCDEC::=iden masmas
+|iden menosmenos;*/
+
+SSHOW::=Show parentizq EXP parentder pcoma;
+
+NOTES::=Note parentizq NOTA parentder
+|error:idi9{:Cadena=Cadena+"Linea: "+(idi9right+1)+" Estructura Note incorrecta\n";:} ;
+
+NOTA::=Do
+|Re
+|Mi
+|Fa
+|Sol
+|La
+|Si
+|DoS
+|ReS
+|MiS
+|FaS
+|SolS
+|LaS
+|error:idi10{:Cadena=Cadena+"Linea: "+(idi10right+1)+" Nota no valida\n";:} ;
+
+
+PPLAYSOUND::=Playsound parentizq iden coma NOTES coma numero parentder pcoma;
+
+CONDICION::=EXP OPREL EXP
+|error:idi11{:Cadena=Cadena+"Linea: "+(idi11right+1)+" Condicion no valida\n";:};
+
+OPREL::=menor
+|mayor
+|igualque
+|diferente
+|menorigual
+|mayorigual
+|error:idi12{:Cadena=Cadena+"Linea: "+(idi12right+1)+" Operador relacional invalido\n";:} ;
+
+EXP::=EXP mas T
+|EXP menos T
+|T;
+
+T::=T dividir F
+|T multiplicar F
+|F;
+
+F::=iden
+|numero
+|parentizq EXP parentder
+|error:idi13{:Cadena=Cadena+"Linea: "+(idi13right+1)+" Expresion invalida\n";:} ;

@@ -1,0 +1,463 @@
+package NohtypPackage;
+
+import java.io.*;
+
+import java.lang.*;
+
+import java_cup.runtime.*;
+
+import java_cup.runtime.Symbol;
+
+import java.util.ArrayList;
+
+import java.util.*;
+
+
+action code{:
+static boolean eval=true;
+
+void print(String msj)
+ 
+   {System.out.println(msj);}
+
+
+:}
+
+
+parser code {:
+
+
+
+public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{
+
+Ventana.error("Error fatal, verifica que todas las llaves '{}' esten cerradas, no se puede seguir analizando");
+
+
+System.out.println(" ");
+ }
+
+public void syntax_error(Symbol s){
+/* Ventana.error("ERROR SINTAXIS: Se encontro un error en la linea: "+(s.right+1)+" antes de: '"+s.value+"', revisa la estructura de tu programa en esa sección"); */
+}
+
+
+
+public void semantic(Symbol cur_token,String n)
+{
+System.out.println("Error Semantico ");
+  }
+
+public void report_error(String message, Object info){
+	System.out.println(message);
+}
+
+public void semantic(String msg, Object obj) {
+System.out.println(msg);
+}
+
+:};
+
+
+terminal txinput, tfalse, ttrue, tand, telif, telse, tfor,
+    tif, tin, 
+    tnot, twhile,tcomentarios, tmas, tmenos, tpor, tentre, tmodulo, tigualque,
+    tdiferente, tigualmenor, tigualmayor, tigual,
+    tabre, tcierra, tabrec, tcierrac, tabrep, tcierrap, tcoma, tor, tmenor, tmayor, tpuntos, tpunto, trange, tpuntocoma, tinput, tprint, tstr, tarray, txarray;
+
+terminal String tid, tint, treal , tstring, tchar;
+
+non terminal ESE,LISTA,COND3,LOG,A,CORC, SINT, IF, WHI, FOR, ASIG, ABRECIERRA, SAL, ENT, EXP, COND, COND2, TCOND, OPL, OPREL, REL, TERM, EXP2, TERM2, FAC ;
+
+start with SINT;
+
+SINT ::=  ASIG:a SINT {:TablaDS.codinter=a+TablaDS.codinter;:}
+| SAL:a SINT {:TablaDS.codinter=a+TablaDS.codinter;:}
+| ENT:a SINT {:TablaDS.codinter=a+TablaDS.codinter;:}
+| WHI:a SINT {:TablaDS.codinter=a+TablaDS.codinter;:}
+| FOR:a SINT {:TablaDS.codinter=a+TablaDS.codinter;:}
+| IF:a SINT {:TablaDS.codinter=a+TablaDS.codinter;:}
+| LISTA:a SINT {:TablaDS.codinter=a+TablaDS.codinter;:}
+| ;
+
+ESE ::= 
+	ASIG:a ESE:b {:RESULT=a+"\n"+b;:}
+| SAL:a ESE:b {:RESULT=a+"\n"+b;:}
+| ENT:a ESE:b {:RESULT=a+"\n"+b;:}
+| WHI:a ESE:b {:RESULT=a+"\n"+b;:}
+| FOR:a ESE:b {:RESULT=a+"\n"+b;:}
+| IF:a ESE:b {:RESULT=a+"\n"+b;:}
+| LISTA:a ESE:b {:RESULT=a+"\n"+b;:}
+| {:RESULT="";:};
+
+LISTA::= tid:h tarray tfor tint:a tpuntocoma {: RESULT="array String "+h+" of "+a;:}
+| tid:h txarray tfor tint:a tpuntocoma  {: RESULT="array Integer "+h+" of "+a; :}
+| tid:h tarray tfor tid:a tpuntocoma {: RESULT="T"+TablaDS.x+"= "+a+"\narray String "+h+" of T"+TablaDS.x; TablaDS.incx();:}
+| tid:h txarray tfor tid:a  tpuntocoma {: RESULT="T"+TablaDS.x+"= "+a+"\narray Integer "+h+" of T"+TablaDS.x; TablaDS.incx();:}
+;
+
+COND2::= COND:a {:RESULT=(Nodo) a;:} | tid:a {:RESULT=a;:};
+
+IF::= tif COND2:a tpuntos ABRECIERRA:b {:
+
+String t="";
+
+if(a.toString().matches("[a-zA-Z_][a-zA-Z0-9_]*")){
+	t="T"+TablaDS.x+"= "+a+"\n"+"sifalso "+"T"+TablaDS.x+", E"+TablaDS.y+"\n";
+	TablaDS.incx();
+}
+
+else{
+Nodo temp= (Nodo) a;
+Nodo.postorden(temp); 
+String[] te=temp.valorT.split("=");
+
+t=temp.cadtemp+"\n"+"sifalso "+te[0]+", E"+TablaDS.y+"\n";
+}
+
+t=t+b+"E"+TablaDS.y+": ";
+TablaDS.incy();
+RESULT=t;
+
+:}
+| tif COND2:a tpuntos ABRECIERRA:b telse tpuntos ABRECIERRA:c {:
+
+String t="";
+
+if(a.toString().matches("[a-zA-Z_][a-zA-Z0-9_]*")){
+  t="T"+TablaDS.x+"= "+a+"\n"+"sifalso "+"T"+TablaDS.x+", E"+TablaDS.y+"\n";
+  TablaDS.incx();
+}
+
+else{
+Nodo temp= (Nodo) a;
+Nodo.postorden(temp); 
+String[] te=temp.valorT.split("=");
+
+t=temp.cadtemp+"\n"+"sifalso "+te[0]+", E"+TablaDS.y+"\n";
+}
+
+t=t+b+"saltar E"+(TablaDS.y+1)+"\n";
+t=t+"E"+TablaDS.y+": ";
+TablaDS.incy();
+t=t+c+"E"+TablaDS.y+": ";
+TablaDS.incy();
+RESULT=t;
+
+:}
+
+
+
+
+| tif COND2:a tpuntos ABRECIERRA:b telif COND2:d tpuntos ABRECIERRA:c
+{:
+
+String t="";
+
+if(a.toString().matches("[a-zA-Z_][a-zA-Z0-9_]*")){
+  t="T"+TablaDS.x+"= "+a+"\n"+"sifalso "+"T"+TablaDS.x+", E"+TablaDS.y+"\n";  /*salto a E1 elif*/
+  TablaDS.incx();
+}
+
+else{
+Nodo temp= (Nodo) a;
+Nodo.postorden(temp); 
+String[] te=temp.valorT.split("=");    /*salto a E1 elif*/
+
+t=temp.cadtemp+"\n"+"sifalso "+te[0]+", E"+TablaDS.y+"\n";
+}
+
+t=t+b+"saltar E"+(TablaDS.y+1)+"\n";   /*salto excluyendo elif E2*/
+t=t+"E"+TablaDS.y+": ";               /*E1: */
+TablaDS.incy();
+
+
+if(d.toString().matches("[a-zA-Z_][a-zA-Z0-9_]*")){
+  
+t=t+"T"+TablaDS.x+"= "+d+"\n"+"sifalso "+"T"+TablaDS.x+", E"+TablaDS.y+"\n";  /*salto final*/
+  TablaDS.incx();
+
+}
+
+else{
+Nodo temp1= (Nodo) d;
+Nodo.postorden(temp1); 
+String[] te=temp1.valorT.split("=");    /*salto final*/
+
+t=t+temp1.cadtemp+"\n"+"sifalso "+te[0]+", E"+TablaDS.y+"\n";
+}
+
+t=t+c+"E"+TablaDS.y+": ";
+TablaDS.incy();
+RESULT=t;
+
+:}
+
+
+;
+
+WHI::= twhile COND2:a tpuntos ABRECIERRA:b {:
+
+String t="";
+
+t="E"+TablaDS.y+": ";
+
+if(a.toString().matches("[a-zA-Z_][a-zA-Z0-9_]*")){
+  t=t+"T"+TablaDS.x+"= "+a+"\n"+"sifalso "+"T"+TablaDS.x+", E"+(TablaDS.y+1)+"\n";
+  TablaDS.incx();
+}
+
+else{
+Nodo temp= (Nodo) a;
+Nodo.postorden(temp); 
+String[] te=temp.valorT.split("=");
+
+t=t+temp.cadtemp+"\n"+"sifalso "+te[0]+", E"+(TablaDS.y+1)+"\n";
+}
+
+t=t+b+"saltar "+"E"+TablaDS.y+"\n";
+TablaDS.incy();
+t=t+"E"+TablaDS.y+": ";
+TablaDS.incy();
+RESULT=t;
+
+
+:}
+ ;
+
+FOR::= tfor A:a tin trange tabrep EXP:q tcierrap tpuntos ABRECIERRA:c {:
+Nodo temp= (Nodo) q;
+Nodo.postorden(temp); 
+String[] te=temp.valorT.split("=");
+String t="";
+if(!temp.valorT.matches("\\-*[0-9]+|\\-*[0-9]+\\.[0-9]+"))
+t=temp.cadtemp;
+int e=TablaDS.x;
+t=t+"T"+e+"= "+a+"\n";
+TablaDS.incx();
+t=t+"E"+TablaDS.y+": T"+TablaDS.x+"= "+"T"+e+" >= "+te[0]+"\n";
+TablaDS.incy();
+TablaDS.incx();
+t=t+"sifalso T"+(TablaDS.x-1)+", E"+TablaDS.y+"\n";
+t=t+c+"incrementar T"+e+"\nsaltar E"+(TablaDS.y-1)+"\nE"+TablaDS.y+": ";
+TablaDS.incy();
+RESULT=t;
+
+:}
+;
+
+
+A::= tid:a {:RESULT=a;:}| tint:a {:RESULT=a;:};
+
+
+ASIG ::= tid:h tigual EXP:q tpuntocoma {:
+Nodo temp= (Nodo) q;
+
+Nodo.postorden(temp); 
+String[] t=temp.valorT.split("=");
+
+TablaDS.Dinamico.setValueAt(temp.tipo, TablaDS.Buscar(h), 1);
+
+if(!temp.valorT.matches("\\-*[0-9]+|\\-*[0-9]+\\.[0-9]+"))
+RESULT=temp.cadtemp+h+"= "+t[0]+"\n";
+
+else
+RESULT=h+"= "+t[0]+"\n";
+
+
+:} 
+
+
+| tid:h tigual COND:q tpuntocoma {:
+
+Nodo temp= (Nodo) q;
+Nodo.postorden(temp); 
+String[] t=temp.valorT.split("=");
+
+RESULT=temp.cadtemp+h+"= "+t[0]+"\n";
+
+:} 
+
+| tid:hue tigual tstring:q {:
+
+RESULT=hue+"= "+q+"\n";
+
+:} tpuntocoma 
+| tid:h tigual tabrec CORC tcierrac tpuntocoma {::}
+| tid:h tigual ENT:q {:
+
+RESULT=q+h+"= T"+(TablaDS.x-1)+"\n";
+
+:}
+;
+
+CORC::= tid | tint | treal
+| tid tcoma CORC 
+| tstring 
+| tstring tcoma CORC ;
+
+
+ABRECIERRA ::= tabre ESE:a tcierra {:RESULT=a;:}
+;
+
+
+SAL ::= tprint tabrep EXP:q tcierrap tpuntocoma
+{:
+
+Nodo temp= (Nodo) q;
+Nodo.postorden(temp); 
+String[] te=temp.valorT.split("=");
+
+String t=temp.cadtemp+"\n print "+te[0]+"\n";
+RESULT=t;
+:}
+| tprint tabrep tstring:a tcierrap tpuntocoma {:
+
+String t="T"+TablaDS.x+"= "+a+"\n";
+RESULT=t+"print T"+TablaDS.x+"\n";
+TablaDS.incx();
+
+:}
+| tstr tabrep tid:q tcierrap tpuntocoma {:
+
+String t="T"+TablaDS.x+"= "+a+"\n";
+RESULT=t+"print T"+TablaDS.x+"\n";
+TablaDS.incx();
+
+
+:}
+| tstr tabrep tstring:a tcierrap tpuntocoma {:
+
+String t="T"+TablaDS.x+"= "+a+"\n";
+RESULT=t+"printSTR T"+TablaDS.x+"\n";
+TablaDS.incx();
+
+
+:}
+;
+
+
+ENT ::= tinput tabrep tstring:a tcierrap tpuntocoma {:
+
+String t="T"+TablaDS.x+"= "+a+"\n";
+TablaDS.incx();
+t=t+"print T"+(TablaDS.x-1)+"\n";
+t=t+"T"+TablaDS.x+"= capturarteclado\n";
+TablaDS.incx();
+RESULT=t;
+
+:}
+| tinput tabrep tid:a tcierrap tpuntocoma {:
+
+String t="T"+TablaDS.x+"= "+a+"\n";
+TablaDS.incx();
+t=t+"print T"+(TablaDS.x-1)+"\n";
+t=t+"T"+TablaDS.x+"= capturarteclado\n";
+TablaDS.incx();
+RESULT=t;
+
+:}
+| txinput tabrep tstring:a tcierrap tpuntocoma{:
+String t="T"+TablaDS.x+"= "+a+"\n";
+TablaDS.incx();
+t=t+"print T"+(TablaDS.x-1)+"\n";
+t=t+"T"+TablaDS.x+"= capturarteclado\n";
+TablaDS.incx();
+RESULT=t;
+
+
+
+:}
+| txinput tabrep tid:a tcierrap tpuntocoma {:
+String t="T"+TablaDS.x+"= "+a+"\n";
+TablaDS.incx();
+t=t+"print T"+(TablaDS.x-1)+"\n";
+t=t+"T"+TablaDS.x+"= capturarteclado\n";
+TablaDS.incx();
+RESULT=t;
+
+
+:}
+;
+
+
+COND ::= COND:a OPL:b REL:c  {:RESULT=new Nodo(b+"","Boolean",a,c);:} 
+| REL:a {:RESULT=(Nodo) a;:} 
+/* | COND OPL tid  */
+;
+
+
+/*TCOND ::= tnot COND | REL ;*/
+
+
+
+REL ::= tabrep COND:a tcierrap {:RESULT=(Nodo) a;:}
+| EXP:a OPREL:c EXP:b {:
+
+RESULT=new Nodo(c+"","Boolean",a,b);
+
+:}
+
+
+| ttrue {:RESULT=new Nodo("True","Boolean",null,null);:} 
+| tfalse {:RESULT=new Nodo("False","Boolean",null,null);:} 
+| tnot REL:a {:
+Nodo temp= (Nodo) a;
+temp.modV("not "+temp.valor);
+RESULT= temp;
+:} 
+;
+
+OPL ::= tand:a {:RESULT="And";:} 
+| tor:a {:RESULT="Or";:}
+;
+
+OPREL ::= tigualque:a {:RESULT="==";:} 
+| tdiferente:a {:RESULT="!=";:} 
+| tigualmenor:a {:RESULT="<=";:} 
+| tigualmayor:a {:RESULT=">=";:} 
+| tmayor:a {:RESULT=">";:} 
+| tmenor:a {:RESULT="<";:} 
+;
+
+
+LOG::= LOG:a OPL:b COND3:c | COND3:a | tnot COND3:b | ttrue | tfalse ;
+
+COND3::= COND3:a OPREL:b COND:c | tid ;
+
+
+/*ESTAS YA ESTAN BIEN*/
+EXP ::= EXP:a tmas TERM:b {:RESULT=new Nodo("+","Ope",a,b);:} 
+| EXP:a tmenos TERM:b {:RESULT=new Nodo("-","Ope",a,b);:} 
+| TERM:b {:RESULT=(Nodo) b;:} 
+
+;
+
+TERM ::= TERM:a tpor FAC:b {:RESULT=new Nodo("*","Ope",a,b);:} 
+| TERM:a tentre FAC:b {:RESULT=new Nodo("/","Real",a,b);:} 
+| FAC:a {:RESULT=(Nodo) a;:} ;
+
+FAC ::= tabrep EXP:a tcierrap {:RESULT=(Nodo) a;:} 
+| tid:t {:
+
+String tipo= TablaDS.ObtenerTipo(t);
+RESULT=new Nodo(t.toString(),tipo,null,null);
+
+:} 
+| tint:a {:RESULT=new Nodo(a.toString(),"Integer",null,null);:} 
+| treal:a {:RESULT=new Nodo(a.toString(),"Real",null,null);:} 
+| tmenos tid:a {:
+
+
+String tipo= TablaDS.ObtenerTipo(a);
+
+
+RESULT=new Nodo("-"+a.toString(),tipo,null,null);
+:}
+| tmenos tint:a {:RESULT=new Nodo("-"+a.toString(),"Integer",null,null);:}
+| tmenos treal:a {:RESULT=new Nodo("-"+a.toString(),"Real",null,null);:}
+
+;
+
+
+
+EXP2::= EXP2 tmas EXP | EXP2 tpor EXP | EXP2 tentre EXP | EXP2 tmenos EXP | tid | EXP ; 

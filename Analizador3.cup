@@ -1,0 +1,115 @@
+package NohtypPackage;
+
+import java.io.*;
+
+import java.lang.*;
+
+import java_cup.runtime.*;
+
+import java_cup.runtime.Symbol;
+
+import java.util.ArrayList;
+
+import java.util.*;
+
+
+action code{:
+
+
+void print(String msj)
+ 
+   {System.out.println(msj);}
+
+
+:}
+
+
+parser code {:
+
+
+
+public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{
+
+Ventana.error("Identificador "+s.value+" en la linea "+(s.right+1)+" está causando conflictos");
+
+
+System.out.println(" ");
+ }
+
+public void syntax_error(Symbol s){
+/* Ventana.error("ERROR SINTAXIS: Se encontro un error en la linea: "+(s.right+1)+" antes de: '"+s.value+"', revisa la estructura de tu programa en esa sección"); */
+}
+
+
+
+public void semantic(Symbol cur_token,String n)
+{
+System.out.println("Error Semantico ");
+  }
+
+public void report_error(String message, Object info){
+	System.out.println(message);
+}
+
+public void semantic(String msg, Object obj) {
+
+}
+
+:};
+
+
+terminal tfalse, tnone, ttrue, tand, tas, tassert, tbreak, tclass, tcontinue, tdef, tdel, telif, telse, texcept, tfinally, tfor,
+    tfrom, tglobal, timport, tif, tin, tis, tlambda, tnonlocal,
+    tnot, tnor, tpass, traise, treturn, ttry, twhile, twith, tyield, tcomentarios, tmas, tmenos, tpor, tentre, tmodulo, tigualque,
+    tdiferente, tigualmenor, tigualmayor, tigual, tigualmas,
+    tigualmenos, tabre, tcierra, tabrec, tcierrac, tabrep, tcierrap, tcoma, tor, tmenor, tmayor, tpuntos, tpunto, trange, tpuntocoma, tinput, tprint, tstr;
+
+terminal String tid, tint, treal , tstring, tchar;
+
+non terminal CORC, SINT, IF, WHI, FOR, ASIG, ABRECIERRA, SAL, ENT, EXP, COND, COND2, TCOND, OPL, OPREL, REL, TERM, EXP2, TERM2, FAC ;
+
+start with SINT;
+
+SINT ::=  ASIG SINT| SAL SINT | ENT SINT | WHI SINT | FOR SINT | IF SINT | error:e1{:Ventana.error("Error en la linea: "+(e1right+1)+", No es una instrucción válida, revisa tu código");:} SINT | ;
+
+
+
+
+IF::= tif COND tpuntos ABRECIERRA | tif COND tpuntos ABRECIERRA telse ABRECIERRA | tif error:e3{:Ventana.error("Error en la linea: "+(e3right+1)+", falta la condicion seguido de sus respectivos ':' en un if ");:} ;
+
+WHI::= twhile COND tpuntos ABRECIERRA | twhile error:e8{:Ventana.error("Error en la linea: "+(e8right+1)+", falta la condicion seguido de sus respectivos ':' en un ciclo while ");:} ;
+
+FOR::= tfor tid tin trange tabrep EXP tcierrap tpuntos ABRECIERRA | tfor error:e9{:Ventana.error("Error en la linea: "+(e9right+1)+", estructura incorrecta de un ciclo for, revise su código");:};
+
+
+
+
+ASIG ::= tid tigual EXP tpuntocoma | tid tigual COND tpuntocoma | tid:hue tigual tstring:q {:TablaDS.Insertar("string",hue,0,"tipo") ;:} tpuntocoma | tid tigual tabrec CORC tcierrac tpuntocoma |tid tigual error:e6{:Ventana.error("Error en la linea: "+(e6right+1)+", hacen falta ';' ");:}
+| tid tigual tabrec error:e15{:Ventana.error("Error en la linea: "+(e15right+1)+", declaracion de una lista no valida ");:} ;
+
+CORC::= EXP | EXP tcoma CORC | tstring | tstring tcoma CORC ;
+
+
+ABRECIERRA ::= tabre SINT tcierra | error:e2{:Ventana.error("Error en la linea: "+(e2right+1)+", Se esperan las instrucciones entre dos corchetes '{}' ");:} /* | tabre SINT error:e10{:Ventana.error("Error en la linea: "+(e10right+1)+", Se esperan las instrucciones entre dos corchetes '{}' ");:}    */;
+
+
+SAL ::= tprint tabrep EXP tcierrap tpuntocoma | tprint tabrep tstring tcierrap tpuntocoma | tstr tabrep EXP tcierrap tpuntocoma | tstr tabrep tstring tcierrap tpuntocoma | tprint tabrep error:e11{:Ventana.error("Error en la linea: "+(e11right+1)+", hay instrucción 'print' incorrecta. Verifica su estructura y que haya un ';' al final");:} | tstr tabrep error:e12{:Ventana.error("Error en la linea: "+(e12right+1)+", hay instrucción 'str' incorrecta. Verifica su estructura y que haya un ';' al final ");:};
+
+ENT ::= tinput tabrep tstring tcierrap tpuntocoma | tinput tabrep tid tcierrap tpuntocoma ;
+
+
+COND ::= COND OPL REL | REL ;
+/*TCOND ::= tnot COND | REL ;*/
+REL ::= tabrep COND tcierrap | EXP OPREL EXP | ttrue | tfalse | tnot REL ;
+
+OPL ::= tand | tor ;
+OPREL ::= tigualque | tdiferente | tigualmenor | tigualmayor | tmayor | tmenor ;
+
+
+/*ESTAS YA ESTAN BIEN*/
+EXP ::= EXP tmas TERM | EXP tmenos TERM | TERM | error:e4{:Ventana.error("Error en la linea: "+(e4right+1)+", Hay una expresion invalida, revisa tu código ");:};
+
+TERM ::= TERM tpor FAC | TERM tentre FAC | FAC ;
+
+FAC ::= tabrep EXP tcierrap | tid | tint | treal | tmenos FAC;
+
